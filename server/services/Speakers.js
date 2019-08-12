@@ -1,77 +1,75 @@
-const fs = require('fs');
-const util = require('util');
-
-const readFile = util.promisify(fs.readFile);
+const axios = require("axios");
 
 class SpeakersService {
-  constructor(datafile) {
-    this.datafile = datafile;
+  constructor() {
+    this.servicePromise = this.getService("speakers-service");
   }
 
   async getNames() {
-    const data = await this.getData();
-
-    return data.map(speaker => ({
-      name: speaker.name,
-      shortname: speaker.shortname,
-    }));
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/names`
+    });
+    return result;
   }
 
   async getListShort() {
-    const data = await this.getData();
-    return data.map(speaker => ({
-      name: speaker.name,
-      shortname: speaker.shortname,
-      title: speaker.title,
-    }));
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/list-short`
+    });
+    return result;
   }
 
   async getList() {
-    const data = await this.getData();
-    return data.map(speaker => ({
-      name: speaker.name,
-      shortname: speaker.shortname,
-      title: speaker.title,
-      summary: speaker.summary,
-    }));
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/list`
+    });
+    return result;
   }
 
   async getAllArtwork() {
-    const data = await this.getData();
-    const artwork = data.reduce((acc, elm) => {
-      if (elm.artwork) {
-        // eslint-disable-next-line no-param-reassign
-        acc = [...acc, ...elm.artwork];
-      }
-      return acc;
-    }, []);
-    return artwork;
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/artworks`
+    });
+    return result;
   }
 
   async getSpeaker(shortname) {
-    const data = await this.getData();
-    const speaker = data.find(current => current.shortname === shortname);
-    if (!speaker) return null;
-    return {
-      title: speaker.title,
-      name: speaker.name,
-      shortname: speaker.shortname,
-      description: speaker.description,
-    };
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/speaker/${shortname}`
+    });
+    return result;
   }
 
   async getArtworkForSpeaker(shortname) {
-    const data = await this.getData();
-    const speaker = data.find(current => current.shortname === shortname);
-    if (!speaker || !speaker.artwork) return null;
-    return speaker.artwork;
+    const { ip, port } = await this.servicePromise;
+    var result = await this.callService({
+      method: "get",
+      url: `http://${ip}:${port}/artwork/${shortname}`
+    });
+    return result;
   }
 
-  async getData() {
-    const data = await readFile(this.datafile, 'utf8');
-    if (!data) return [];
-    return JSON.parse(data).speakers;
-  }
+  getService = async serviceName => {
+    var service = await axios.get(
+      `http://localhost:3000/find/${serviceName}/1`
+    );
+    return service.data.result;
+  };
+
+  callService = async params => {
+    var response = await axios(params);
+    return response.data;
+  };
 }
 
 module.exports = SpeakersService;
