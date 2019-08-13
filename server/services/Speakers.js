@@ -1,7 +1,9 @@
 const axios = require("axios");
 
 class SpeakersService {
-  constructor() {
+  constructor({ serviceRegistryUrl, serviceRegistryId }) {
+    this.serviceRegistryUrl = serviceRegistryUrl;
+    this.serviceRegistryId = serviceRegistryId;
     this.servicePromise = this.getService("speakers-service");
   }
 
@@ -10,6 +12,16 @@ class SpeakersService {
     var result = await this.callService({
       method: "get",
       url: `http://${ip}:${port}/names`
+    });
+    return result;
+  }
+
+  async getImage(path) {
+    const { ip, port } = await this.servicePromise;
+    const result = await this.callService({
+      method: "get",
+      responseType: "stream",
+      url: `http://${ip}:${port}/images/${path}`
     });
     return result;
   }
@@ -60,10 +72,16 @@ class SpeakersService {
   }
 
   getService = async serviceName => {
-    var service = await axios.get(
-      `http://localhost:3000/find/${serviceName}/1`
-    );
-    return service.data.result;
+    try {
+      var service = await axios.get(
+        `${this.serviceRegistryUrl}/find/${serviceName}/${
+          this.serviceRegistryId
+        }`
+      );
+      return service.data.result;
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   callService = async params => {

@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 
 const router = express.Router();
 
-module.exports = (param) => {
+module.exports = param => {
   const { speakers } = param;
 
-  router.get('/', async (req, res) => {
+  router.get("/", async (req, res) => {
     try {
       const promises = [];
       promises.push(speakers.getList());
@@ -13,17 +13,17 @@ module.exports = (param) => {
 
       const results = await Promise.all(promises);
 
-      return res.render('speakers', {
-        page: 'All Speakers',
+      return res.render("speakers", {
+        page: "All Speakers",
         speakerslist: results[0],
-        artwork: results[1],
+        artwork: results[1]
       });
     } catch (err) {
       return err;
     }
   });
 
-  router.get('/:name', async (req, res, next) => {
+  router.get("/:name", async (req, res, next) => {
     try {
       const promises = [];
       promises.push(speakers.getSpeaker(req.params.name));
@@ -34,10 +34,10 @@ module.exports = (param) => {
         return next();
       }
 
-      return res.render('speakers/detail', {
+      return res.render("speakers/detail", {
         page: req.params.name,
         speaker: results[0],
-        artwork: results[1],
+        artwork: results[1]
       });
     } catch (err) {
       return next(err);
